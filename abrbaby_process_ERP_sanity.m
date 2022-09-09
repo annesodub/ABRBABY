@@ -116,45 +116,47 @@ for jj=find(ismember(subjects,'DVL_005_T18'))
     EEG=pop_chanedit(EEG, 'lookup','/Users/anne-sophiedubarry/Documents/4_Software/eeglab2020_0/plugins/dipfit/standard_BEM/elec/standard_1005.elc');
 
     % Select DEV
-    [EEG_DEV1,target_indices1] = pop_selectevent(EEG,'type','DEV1');
-    [EEG_DEV2,target_indices2] = pop_selectevent(EEG,'type','DEV2');
-    [EEG_STD,target_indices_std] = pop_selectevent(EEG,'type','STD');
+    [EEG_DEV1,target_indices1] = pop_selectevent(EEG,'type','DEV1'); % list of DEV1 relative to 900 trials 
+    [EEG_DEV2,target_indices2] = pop_selectevent(EEG,'type','DEV2'); % list of DEV2 relative to 900 trials 
+    [EEG_STD,target_indices_std] = pop_selectevent(EEG,'type','STD'); % list of STD relative to 900 trials 
     
-    idx_std1 = target_indices_std(ismember(target_indices_std,target_indices1-1));
-    idx_std2 = target_indices_std(ismember(target_indices_std,target_indices2-1));
+    idx_std1 = target_indices_std(ismember(target_indices_std,target_indices1-1)); % list of STD preceeding DEV1 relative to 900 trials 
+    idx_std2 = target_indices_std(ismember(target_indices_std,target_indices2-1)); % list of STD preceeding DEV2 relative to 900 trials 
     
-    [EEG_STD1,target_indices_std1] = pop_selectevent(EEG,'event',idx_std1);
+    % Select all STD events in data
+    [EEG_STD1,target_indices_std1] = pop_selectevent(EEG,'event',idx_std1); 
     [EEG_STD2,target_indices_std2] = pop_selectevent(EEG,'event',idx_std2);
    
+    % Remove artifactual trials (STD, DEV)
     [EEG_STD1_thresh,idx_std1_rej] = pop_eegthresh(EEG_STD1,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
     [EEG_STD2_thresh,idx_std2_rej] = pop_eegthresh(EEG_STD2,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
     [EEG_DEV1_thresh,idx_dev1_rej] = pop_eegthresh(EEG_DEV1,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
     [EEG_DEV2_thresh,idx_dev2_rej] = pop_eegthresh(EEG_DEV2,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
    
+    % Remove artifactual trials from all STD
     [EEG_STD_thresh, idx_removed] = pop_eegthresh(EEG_STD,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
    
     std_good = setdiff(1:900,target_indices_std(idx_removed)); 
     begining_of_block = repelem((1:30:900)-1,3)+repmat(1:3,1,30); 
     
      % If nubmber of STD1 < number of DEV1 : randomly select other STD
-    if length(EEG_DEV1_thresh.event)>length(EEG_STD1_thresh.event)
+    if length(EEG_DEV1_thresh.event)~=length(EEG_STD1_thresh.event)
        % Find number of trial to add in STD
        ntrials =  length(EEG_DEV1_thresh.event)-length(EEG_STD1_thresh.event) ;
        %Apply function to balance number of STD trial to reach the number of DEV trials 
-       EEG_STD1_thresh = balance_number_of_STD(EEG,ntrials,std_good,target_indices1,begining_of_block,target_indices_std1,idx_std1_rej,idx_std1) ;
- 
+       [EEG_STD1_thresh] = balance_number_of_STD(EEG,ntrials,std_good,target_indices1,begining_of_block,target_indices_std1,idx_std1_rej,idx_std1, idx_dev1_rej) ;
+       
     end
     
     % If nubmber of STD2 < number of DEV2 : randomly select other STD
-    if length(EEG_DEV2_thresh.event)>length(EEG_STD2_thresh.event)
+    if length(EEG_DEV2_thresh.event)~=length(EEG_STD2_thresh.event)
        % Find number of trial to add in STD
        ntrials =  length(EEG_DEV2_thresh.event)-length(EEG_STD2_thresh.event) ;
        %Apply function to balance number of STD trial to reach the number of DEV trials 
-       EEG_STD2_thresh = balance_number_of_STD(EEG,ntrials,std_good,target_indices2,begining_of_block,target_indices_std2,idx_std2_rej,idx_std2) ; 
- 
+       [EEG_STD2_thresh] = balance_number_of_STD(EEG,ntrials,std_good,target_indices2,begining_of_block,target_indices_std2,idx_std2_rej,idx_std2, idx_dev2_rej) ; 
+
     end
- 
-    
+     
     for cc=1:2 
         
         figure('Name',strcat('Subject :',subjects{jj},'Condition :',conditions{cc+1}),'Units','normalized','Position',[0,0,1,1]);
@@ -207,8 +209,10 @@ end
 % FUNCTION that select from EEG_STD ntrial with no repetition with exisitng
 % STD 
 %--------------------------------------------------------------
-function [EEG_STD_ALL] = balance_number_of_STD(EEG,ntrials,std_good,target_indices,begining_of_block,target_indices_std,idx_std_rej, idx_std)
+function [EEG_STD_ALL] = balance_number_of_STD(EEG,ntrials,std_good,target_indices,begining_of_block,target_indices_std,idx_std_rej, idx_std,idx_dev_rej)
    
+% We need to add some STD 
+if ntrials > 0 
         % Pool of STD without those rejected by threshold detection
         pool_std = setdiff(std_good,target_indices);   
         
@@ -225,6 +229,25 @@ function [EEG_STD_ALL] = balance_number_of_STD(EEG,ntrials,std_good,target_indic
         % Select trial : 1) randomly a number = ntrial and 2) those which
         % were already selected and 'good'
         [EEG_STD_ALL,~] = pop_selectevent(EEG,'event',[idx_std_already_included idx_to_add]);
+
+% We need to remove some STD
+else
+        %Find indices of rejected DEV1 in the 900 trials referential
+        list_of_rej_dev = target_indices(idx_dev_rej);
+        
+        available_std =  setdiff(list_of_rej_dev-1,target_indices_std(idx_std_rej)) ; 
+        
+        %Select random indices amont the rejected DEV
+        random_std_to_remove = available_std(randperm(length(available_std),abs(ntrials)));
+       
+        %Remove STD corresponding to rejected DEV
+        idx_std_already_included = setdiff(target_indices_std, target_indices_std(idx_std_rej)) ; %problem : if there are rejected STD among the selected STD to remove!!
+        new_list_of_std = setdiff(idx_std_already_included,random_std_to_remove);
+        
+        %Modify EEG struct
+        [EEG_STD_ALL,~] = pop_selectevent(EEG,'event',[new_list_of_std]);
+end
+
 end
     
 %--------------------------------------------------------------
