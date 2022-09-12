@@ -200,7 +200,9 @@ for jj=find(ismember(subjects,'DVL_005_T18'))
             end
         
         end
-       
+        % Export data
+        [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
+        [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
     end
 
 end
