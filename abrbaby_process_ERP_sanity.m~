@@ -235,10 +235,10 @@ else
         %Find indices of rejected DEV1 in the 900 trials referential
         list_of_rej_dev = target_indices(idx_dev_rej);
         
-        available_std =  setdiff(target_indices_std(idx_std_rej),list_of_rej_dev-1) ; 
+        available_std =  setdiff(list_of_rej_dev-1,target_indices_std(idx_std_rej)) ; 
         
         %Select random indices amont the rejected DEV
-        random_std_to_remove = available_std(randperm(length(available_std),abs(ntrials)))-1;
+        random_std_to_remove = available_std(randperm(length(available_std),abs(ntrials)));
        
         %Remove STD corresponding to rejected DEV
         idx_std_already_included = setdiff(target_indices_std, target_indices_std(idx_std_rej)) ; %problem : if there are rejected STD among the selected STD to remove!!
