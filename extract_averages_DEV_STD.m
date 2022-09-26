@@ -3,7 +3,7 @@ function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints] = extract_avera
 % Loop through all of the subjects in the study to create the dataset
 for loopnum = 1:length(subjects) %for each subject
 
-    %dimensions datasets (.set)  subjects x channels x timepoints
+    %dimensions datasets (.set) =  subjects x channels x timepoints
 
     STD1File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_STD1.set')) ; 
     EEG_std1 = pop_loadset(STD1File) ; 
