@@ -1,23 +1,19 @@
-%% ERPs analysis script - Estelle Herv� - 2022 - %80PRIME Project
-
-%% Variables to enter manually before running the code
+function [] = abrbaby_process_ERP_sanity(eeglab_path, biosig_installer_path,indir) 
+% ERPs analysis script - 
+% Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
 % Load EEGLAB 
 % addpath(genpath('/Users/anne-sophiedubarry/Documents/4_Software/eeglab2020_0'));
 tmp = pwd ; 
-cd '/Users/anne-sophiedubarry/Documents/4_Software/eeglab2020_0' ; 
+cd(eeglab_path) ; 
 % Open eeglab
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
-run('/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/dev/signal_processing/biosig4octmat-3.8.0/biosig_installer.m') ; 
+run(biosig_installer_path) ; 
 
 cd(tmp) ; 
 
-% Set filepath (must contain .bdf and .txt files from recording)
-% INDIR = '/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data';
-INDIR = '/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data/DEVLANG_data/' ;
-
-% Reads all folders that are in INDIR 
-d = dir(INDIR); 
+% Reads all folders that are in indir 
+d = dir(indir); 
 isub = [d(:).isdir]; % returns logical vector if is folder
 subjects = {d(isub).name}';
 subjects(ismember(subjects,{'.','..'})) = []; % Removes . and ..
@@ -60,13 +56,13 @@ for jj=find(ismember(subjects,'DVL_005_T18'))
    
     %% IMPORT
     % Get BDF file
-    fname= dir(fullfile(INDIR,subjects{jj},'*.bdf'));
+    fname= dir(fullfile(indir,subjects{jj},'*.bdf'));
  
     % Print a message if wrong file name 
     if isempty(fname) ; error('File does not exist, please check path and name'); end ;
             
     % Select bdf file in the folder
-    EEG = pop_biosig(fullfile(INDIR, subjects{jj}, fname.name));
+    EEG = pop_biosig(fullfile(indir, subjects{jj}, fname.name));
 
     % Find REF electrodes indices by labels 
     ref_elec = find(ismember({EEG.chanlocs.labels},mastos)); 
@@ -103,7 +99,7 @@ for jj=find(ismember(subjects,'DVL_005_T18'))
     EEG = eeg_checkset( EEG );
 
     %% SAVE DATASET BEFORE EPOCHING
-    [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_filtered'),'savenew', fullfile(INDIR,subjects{jj}, strcat(filename,'_filtered')),'gui','off');
+    [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_filtered'),'savenew', fullfile(indir,subjects{jj}, strcat(filename,'_filtered')),'gui','off');
     CURR_FILTERED = CURRENTSET ; 
     
     % Extract ALL conditions epochs
@@ -195,18 +191,19 @@ for jj=find(ismember(subjects,'DVL_005_T18'))
                 xlabel('Times (ms)'); ylabel('uV');
                 set(hAxes,'Fontsize',FONTSZ);
                 % To save data in vectoriel
-%                 print('-dsvg',fullfile(INDIR,strcat(subjects{jj},'_',conditions{cc+1},'.svg'))) ; 
+%                 print('-dsvg',fullfile(indir,strcat(subjects{jj},'_',conditions{cc+1},'.svg'))) ; 
                 
             end
         
         end
         % Export data
-        [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
-        [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
+        [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
+        [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
     end
 
 end
-    
+end
+
 %--------------------------------------------------------------
 % FUNCTION that select from EEG_STD ntrial with no repetition with exisitng
 % STD 
