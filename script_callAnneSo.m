@@ -7,4 +7,8 @@ indir = '/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfra
 
 abrbaby_process_ERP_sanity(eeglab_path, biosig_installer_path,indir) ;
 
+FFR_analysis(indir) ;
+
+
 % HERE I CAN EXECUTE ANY FUNCTION OF THE PACKAGE WITH MY PATHS
+
