@@ -1,15 +1,15 @@
-%% FFR analysis script - Estelle HERVE - 80PRIME DEVLANG project
-
-INDIR = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data';
+function [] = FFR_analysis(indir) 
+% ERPs analysis script - 
+% Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
 % Reads all folders that are in INDIR 
-d = dir(INDIR); 
+d = dir(indir); 
 isub = [d(:).isdir]; % returns logical vector if is folder
 subjects = {d(isub).name}';
 subjects(ismember(subjects,{'.','..'})) = []; % Removes . and ..
 
 % Get timepoints
-FFR_times_file = fullfile(INDIR,'ABR_timepoints.txt') ; 
+FFR_times_file = fullfile(indir,'ABR_timepoints.txt') ; 
 fileID = fopen(FFR_times_file,'r');
 formatSpec = '%f';
 timepoints = fscanf(fileID,formatSpec);
@@ -20,7 +20,7 @@ mat = 1;
 all_subj = zeros(size(timepoints,1),1);
 for loopnum = 1:length(subjects) %for each subject
 %for loopnum=find(ismember(subjects,'DVL_003_T10')) ; 
-    FFR_file = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_abr_shifted_data_HF.txt')) ; 
+    FFR_file = fullfile(indir,subjects{loopnum},strcat(subjects{loopnum},'_abr_shifted_data_HF.txt')) ; 
     fileID = fopen(FFR_file,'r');
     formatSpec = '%f';
     FFR_subj = fscanf(fileID,formatSpec);
@@ -142,7 +142,7 @@ xlabel('Times (ms)'); ylabel('uV'); title ('Grand average FFR group comparison')
 %% Adaptation of Skoe function (bt_fftsc)
  %function [Freq1 Freq2 Freq3 fftFFR HzScale]=bt_fftsc(FILENAME,start,stop,F0_Lo,F0_Hi,F1_Lo,F1_Hi,HF_Lo,HF_Hi, chan)
 % bt_fftsc computes frequency-domain amplitudes of three user-defined 
-% frequency bins of Brainstem response.  Results are scaled to peak µV.
+% frequency bins of Brainstem response.  Results are scaled to peak ï¿½V.
 %
 % Usage: [F0 F1 HF] = bt_fftsc('filename.avg',10,40,100,150,300,350,600,800);
 %    over the range of 10 to 40 ms, finds average frequency amplitude of
@@ -199,7 +199,7 @@ FFR = detrend(FFR.*FFRhan, 'constant');
 %******** STEP 2b. Perform FFT
 fftFFR = abs(fft(FFR, round(FS)));
 fftFFR = fftFFR(1:round(round(FS)/2));
-fftFFR = fftFFR.*(2./numPoints); % scale to peak µV
+fftFFR = fftFFR.*(2./numPoints); % scale to peak ï¿½V
 HzScale = [0:1:round(FS/2)]'; % frequency 'axis'
 HzScale = HzScale(1:length(fftFFR));
 
@@ -209,7 +209,7 @@ plot(HzScale,fftFFR);
 grid on;
 title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (µV)");
+ylabel("Amplitude (ï¿½V)");
 
 %% This section does not work for now
 % clear variables no longer needed
@@ -228,7 +228,7 @@ plot(HzScale(startF:stopF),Freq1);
 grid on;
 title("Freq1");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (µV)");
+ylabel("Amplitude (ï¿½V)");
 
 % ii. F1: F1_Lo-F1_Hi
 % find freqs nearest F1_Lo and F1_Hi.
@@ -242,7 +242,7 @@ plot(HzScale,Freq2);
 grid on;
 title("Freq2");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (µV)");
+ylabel("Amplitude (ï¿½V)");
 
 % iii. HF: HF_Lo-HF_Hi
 % find freqs nearest HF_Lo and HF_Hi.
@@ -256,5 +256,5 @@ plot(HzScale,Freq3);
 grid on;
 title("Freq3");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (µV)");
+ylabel("Amplitude (ï¿½V)");
 
