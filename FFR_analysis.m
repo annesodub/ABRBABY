@@ -8,6 +8,12 @@ isub = [d(:).isdir]; % returns logical vector if is folder
 subjects = {d(isub).name}';
 subjects(ismember(subjects,{'.','..'})) = []; % Removes . and ..
 
+%Color for plot
+DIFF_color = [0 0 0]; %black
+FFR_color = [0.8902 0 0]; %red
+grpA_color = [0.2 0.2 1]; %blue
+grpB_color = [0.2 0.7765 0.2]; %green
+
 % Get timepoints
 FFR_times_file = fullfile(indir,'ABR_timepoints.txt') ; 
 fileID = fopen(FFR_times_file,'r');
@@ -76,7 +82,7 @@ end
 % Compute grand average and plot
 grd_FFR = mean(new_all_subj,2);
 figure ; 
-plot(timepoints,grd_FFR,'r','Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
+plot(timepoints,grd_FFR,'Color',FFR_color,'Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
 grid on ; 
 legend('Grand average FFR');
 xlabel('Times (ms)'); ylabel('uV'); title ('Grand average FFR, 6-24 mo');
@@ -110,8 +116,8 @@ FFR_avg_grpB = mean(data_groups{1,2},2);
 
 % Temporal
 figure ; 
-plot(timepoints,FFR_avg_grpA,'b','Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
-plot(timepoints,FFR_avg_grpB,'g','Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
+plot(timepoints,FFR_avg_grpA,'Color', grpA_color,'Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
+plot(timepoints,FFR_avg_grpB,'Color', grpB_color,'Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
 grid on ; 
 legend('Grand average FFR 6-10 mo', 'Grand average FFR 18-24 mo');
 xlabel('Times (ms)'); ylabel('uV'); title ('Grand average FFR group comparison');
