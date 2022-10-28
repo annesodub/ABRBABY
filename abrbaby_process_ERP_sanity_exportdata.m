@@ -1,30 +1,23 @@
-%% ERPs analysis script - Estelle Hervï¿½ - 2022 - %80PRIME Project
-
-%% Variables to enter manually before running the code
+function [] = abrbaby_process_ERP_sanity_exportdata(eeglab_path, biosig_installer_path,indir) 
+% ERPs sanity check script - 
+% Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
 % Load EEGLAB 
 % addpath(genpath('/Users/anne-sophiedubarry/Documents/4_Software/eeglab2020_0'));
-%tmp = pwd ; 
-%cd '/Users/anne-sophiedubarry/Documents/4_Software/eeglab2020_0' ; 
+tmp = pwd ; 
+cd(eeglab_path) ; 
 % Open eeglab
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
-%run('/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/dev/signal_processing/biosig4octmat-3.8.0/biosig_installer.m') ; 
+run(biosig_installer_path) ; 
+cd(tmp) ;
 
-%cd(tmp) ; 
-
-% Set filepath (must contain .bdf and .txt files from recording)
-% INDIR = '/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data';
-%INDIR = '/Users/anne-sophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data/DEVLANG_data' ;
-%INDIR = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data\DATA_18-24';
-%INDIR = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data\DATA_6-10';
-%INDIR = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data_issues';
-INDIR = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_DATA_NEW';
-
-% Reads all folders that are in INDIR 
-d = dir(INDIR); 
+% Reads all folders that are in indir 
+d = dir(indir); 
 isub = [d(:).isdir]; % returns logical vector if is folder
 subjects = {d(isub).name}';
 subjects(ismember(subjects,{'.','..'})) = []; % Removes . and ..
+
+%% Variables to enter manually before running the code
 
 % Set variables for filtering
 % hp = 0.1; %value for high-pass filter (Hz) (APICE)
@@ -49,6 +42,13 @@ cond_sylab = {'BA','GA'} ;
 
 elec = 1:16 ; 
 
+%Colors for plots
+STD_color = [0.4941 0.1019 0.8863]; %purple
+DEV1_color = [1 0.7686 0]; %light orange
+DEV2_color = [1 0.4 0]; %dark orange
+DEV_colors = {DEV1_color, DEV2_color};
+DIFF_color = [0 0 0]; %black
+
 % FOR SANITY CHECK
 for jj=find(ismember(subjects,'DVL_027_T18'))
 
@@ -60,10 +60,10 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
     %% IMPORT
     % Get BDF file
     %[ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
-    fname= dir(fullfile(INDIR,subjects{jj},'*.bdf'));
+    fname= dir(fullfile(indir,subjects{jj},'*.bdf'));
  
     % Select bdf file in the folder
-    EEG = pop_biosig(fullfile(INDIR, subjects{jj}, fname.name));
+    EEG = pop_biosig(fullfile(indir, subjects{jj}, fname.name));
 
     % Find REF electrodes indices by labels 
     ref_elec = find(ismember({EEG.chanlocs.labels},mastos)); 
@@ -101,7 +101,7 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
     EEG = eeg_checkset( EEG );
 
     %% SAVE DATASET BEFORE EPOCHING
-    [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_filtered'),'savenew', fullfile(INDIR,subjects{jj}, strcat(filename,'_filtered')),'gui','off');
+    [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_filtered'),'savenew', fullfile(indir,subjects{jj}, strcat(filename,'_filtered')),'gui','off');
     CURR_FILTERED = CURRENTSET ; 
     
     % Extract ALL conditions epochs
@@ -134,6 +134,33 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
    
     std_good = setdiff(1:900,target_indices_std(idx_removed)); 
     begining_of_block = repelem((1:30:900)-1,3)+repmat(1:3,1,30); 
+    
+     %Export information about rejected trials
+      % Get indices of the trials which were rejected (without messing around with the relative indices)
+    [EEG_all,idx_rejected_all] = pop_eegthresh(EEG,1,elec ,rej_low, rej_high, win_of_interest(1), win_of_interest(2),0,1);
+      % Extract variables of interest
+    trial_index = 1:EEG.trials;
+    trial_num = [EEG.event.urevent];
+    condition = {EEG.event.type} ;
+    latency = [EEG.event.latency]/EEG.srate; 
+    %latency = [EEG.event.latency]; 
+    rejected = ismember(trial_index,idx_rejected_all) ;
+    bloc = zeros(900,1);
+    tr = 1;
+    for bc = 1:30
+        bloc(tr:tr+29,1)= repmat(bc,30,1);
+        bc = bc+1;
+        tr = tr+30;
+    end
+    trial_index = trial_index';
+    condition = condition';
+    latency = latency';
+    trial_num = trial_num';
+    rejected = rejected';
+      % Create table to store these information
+    list_trial_infos = table(trial_index,condition,latency, trial_num,rejected, bloc) ;
+      %  Save this table into a csv file (use function writetable)
+    writetable(list_trial_infos,fullfile(indir,subjects{jj},strcat(filename,'_low_',num2str(rej_low),'_high_',num2str(rej_high),'infos_trials.csv'))) ; 
     
      % If nubmber of STD1 < number of DEV1 : randomly select other STD
     if length(EEG_DEV1_thresh.event)>length(EEG_STD1_thresh.event)
@@ -203,14 +230,14 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
                 grd_DIFF = grd_DEV - grd_STD ; 
 
                 % Plot timeseries
-                plot(EEG_STD.times,grd_STD,'g','Linewidth',1.5); hold on ;set(gca,'YDir','reverse') ; 
-                plot(EEG_STD.times,grd_DEV,'r','Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
-                plot(EEG_STD.times,grd_DIFF,'k','Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
+                plot(EEG_STD.times,grd_STD,'Color', STD_color,'Linewidth',1.5); hold on ;set(gca,'YDir','reverse') ; 
+                plot(EEG_STD.times,grd_DEV,'Color',DEV_colors{cc},'Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
+                plot(EEG_STD.times,grd_DIFF,'Color',DIFF_color,'Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
                 
                 % Plot transparetn halo (+-mad)
-                plotHaloPatchMAD(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), [0,255,0]) ; 
-                plotHaloPatchMAD(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), [255,0,0]) ; 
-           
+                plotHaloPatchMAD(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), STD_color*255) ; 
+                plotHaloPatchMAD(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), DEV_colors{cc}*255);
+              
                 % Adjust graphics
                 xlim([EEG_STD.xmin, EEG_STD.xmax]*1000); grid on ; 
                 legend('STD (/DA/)',sprintf('DEV (/%s/)',cond_sylab{cc}),sprintf('DEV-STD (/%s/)',cond_sylab{cc}));
@@ -218,18 +245,19 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
                 xlabel('Times (ms)'); ylabel('uV');
                 set(hAxes,'Fontsize',12);
                 % To save data in vectoriel
-%                 print('-dsvg',fullfile(INDIR,strcat(subjects{jj},'_',conditions{cc+1},'.svg'))) ; 
+%                 print('-dsvg',fullfile(indir,strcat(subjects{jj},'_',conditions{cc+1},'.svg'))) ; 
                 
             end
         
         end
        
         %Export data
-        [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
-        [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(INDIR,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
+        [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
+        [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
             
     end
 
+end
 end
     
 %--------------------------------------------------------------
