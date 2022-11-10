@@ -27,6 +27,7 @@ all_subj = zeros(size(timepoints,1),1);
 for loopnum = 1:length(subjects) %for each subject
 %for loopnum=find(ismember(subjects,'DVL_003_T10')) ; 
     FFR_file = fullfile(indir,subjects{loopnum},strcat(subjects{loopnum},'_abr_shifted_data_HF.txt')) ; 
+    if exist(FFR_file,'file')==0 ; error(['File does not exist, please run FFR sanity check on ',subjects{loopnum}]); end
     fileID = fopen(FFR_file,'r');
     formatSpec = '%f';
     FFR_subj = fscanf(fileID,formatSpec);
