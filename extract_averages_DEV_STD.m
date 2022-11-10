@@ -1,4 +1,4 @@
-function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints] = extract_averages_DEV_STD(INDIR,subjects)
+function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints, labels] = extract_averages_DEV_STD(INDIR,subjects)
 
 % Loop through all of the subjects in the study to create the dataset
 for loopnum = 1:length(subjects) %for each subject
@@ -24,5 +24,6 @@ for loopnum = 1:length(subjects) %for each subject
 end
 
 timepoints = EEG_std1.times;
+labels = {EEG_std1.chanlocs.labels};
 
 end

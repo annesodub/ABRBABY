@@ -11,7 +11,7 @@ cd(tmp) ;
 %Set group of electrodes to display for visualization
 %Electrodes indices: 1='Fp1'; 2='Fp2';3='F4'; 4='Fz'; 5='F3'; 6='T7'; 7='C3'; 8='Cz'; 9='C4'; 
 %10='T8'; 11='P4'; 12='Pz'; 13='P3'; 14='O1'; 15='Oz'; 16='O2'; 17='Lmon'; 
-%18='Ref'; 19='Rmon'; 20='Left'; 21='Right'
+%18='Ref'; 19='Rmon'; 20='Left3'; 21='Right'
 elec_to_disp_labels = {'F3','Fz','F4';'C3','Cz','C4'};
 elec_indices = [5,4,3;7,8,9];
 
@@ -30,8 +30,8 @@ commands = {}; % initialize STUDY dataset list
 grpA.suffix = {'_T3','_T6','_T8','_T10'};
 grpB.suffix = {'_T18','_T24'};
 
-[grpA.DEV1_avg, grpA.DEV2_avg, grpA.STD1_avg, grpA.STD2_avg, timepoints] = extract_averages_DEV_STD(indir,subjects( contains(subjects,grpA.suffix)));
-[grpB.DEV1_avg, grpB.DEV2_avg, grpB.STD1_avg, grpB.STD2_avg, timepoints] = extract_averages_DEV_STD(indir,subjects( contains(subjects,grpB.suffix)));
+[grpA.DEV1_avg, grpA.DEV2_avg, grpA.STD1_avg, grpA.STD2_avg, timepoints, labels] = extract_averages_DEV_STD(indir,subjects( contains(subjects,grpA.suffix)));
+[grpB.DEV1_avg, grpB.DEV2_avg, grpB.STD1_avg, grpB.STD2_avg, timepoints, labels] = extract_averages_DEV_STD(indir,subjects( contains(subjects,grpB.suffix)));
 
 % [grpA.DEV1_avg, grpA.DEV2_avg, grpA.STD1_avg, grpA.STD2_avg, grpA.grd_STD1, grpA.grd_STD2, grpA.grd_DEV1, grpA.grd_DEV2, grpA.diff_DEV1_STD1, grpA.diff_DEV2_STD2, grpA.mean_STD1_STD2, timepoints] = extract_averages_DEV_STD(INDIR,subjects( contains(subjects,grpA.suffix)));
 % [grpB.DEV1_avg, grpB.DEV2_avg, grpB.STD1_avg, grpB.STD2_avg, grpB.grd_STD1, grpB.grd_STD2, grpB.grd_DEV1, grpB.grd_DEV2, grpB.diff_DEV1_STD1, grpB.diff_DEV2_STD2, grpB.mean_STD1_STD2, timepoints] = extract_averages_DEV_STD(INDIR,subjects( contains(subjects,grpB.suffix)));
@@ -65,6 +65,19 @@ mean_STD1_STD2_grpA = (grd_STD1_grpA + grd_STD2_grpA)/2;
 mean_STD1_STD2_grpB = (grd_STD1_grpB + grd_STD2_grpB)/2;
 
 %% Visualisation
+
+%contains(labels,elec_to_disp_labels);  %[5,4,3;7,8,9];
+%elec_indices = find(contains(labels,elec_to_disp_labels)); %encours TODO
+%CODE TO WORK ON:
+%[sharedvals,idx] = intersect(labels, elec_to_disp_labels) ;
+%[sharedvals,other,idx] = intersect(elec_to_disp_labels,labels,'stable');
+%reshape(idx, size(elec_to_disp_labels)) ;
+
+elec_indices_temp = zeros(size(elec_to_disp_labels,1),size(elec_to_disp_labels,2));
+for n = 1:size((elec_to_disp_labels),1)
+    [sharedvals,other,idx] = intersect(elec_to_disp_labels(n,:),labels,'stable');
+    elec_indices_temp(n,:)=idx';
+end
 
 fig_name_STD = 'Response to standard /DA/ group comparison';
 legend1_STD = 'Std /DA/ 6-10mo';
