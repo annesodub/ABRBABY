@@ -1,15 +1,15 @@
-function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints, labels] = extract_averages_DEV_STD(INDIR,subjects)
+function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints, labels] = extract_averages_DEV_STD_allSTD(INDIR,subjects)
 
 % Loop through all of the subjects in the study to create the dataset
 for loopnum = 1:length(subjects) %for each subject
 
     %dimensions datasets (.set) =  subjects x channels x timepoints
 
-    STD1File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_STD1.set')) ; 
+    STD1File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_all_STD1.set')) ; 
     EEG_std1 = pop_loadset(STD1File) ; 
     STD1_subj(loopnum,:,:)  = mean(EEG_std1.data,3) ;
 
-    STD2File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_STD2.set')) ; 
+    STD2File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},'_all_STD2.set')) ; 
     EEG_std2 = pop_loadset(STD2File) ; 
     STD2_subj(loopnum,:,:)  = mean(EEG_std2.data,3) ;
 

@@ -50,10 +50,10 @@ DEV_colors = {DEV1_color, DEV2_color};
 DIFF_color = [0 0 0]; %black
 
 % FOR SANITY CHECK
-for jj=find(ismember(subjects,'DVL_027_T18'))
+%for jj=find(ismember(subjects,'DVL_010_T24'))
 
     %Loop through subjects
-    %for jj=1:length(subjects) 
+    for jj=1:length(subjects) 
         
      fprintf(strcat(subjects{jj}, '...\n'));
      
@@ -235,26 +235,41 @@ for jj=find(ismember(subjects,'DVL_027_T18'))
                 plot(EEG_STD.times,grd_DIFF,'Color',DIFF_color,'Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
                 
                 % Plot transparetn halo (+-mad)
-                plotHaloPatchMAD(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), STD_color*255) ; 
-                plotHaloPatchMAD(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), DEV_colors{cc}*255);
+                %plotHaloPatchMAD(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), STD_color*255) ; 
+                %plotHaloPatchMAD(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), DEV_colors{cc}*255);
               
                 % Adjust graphics
                 xlim([EEG_STD.xmin, EEG_STD.xmax]*1000); grid on ; 
-                legend('STD (/DA/)',sprintf('DEV (/%s/)',cond_sylab{cc}),sprintf('DEV-STD (/%s/)',cond_sylab{cc}));
                 title(elec_to_disp_labels(elec_letter,elec_numb));
                 xlabel('Times (ms)'); ylabel('uV');
                 set(hAxes,'Fontsize',12);
-                % To save data in vectoriel
-%                 print('-dsvg',fullfile(indir,strcat(subjects{jj},'_',conditions{cc+1},'.svg'))) ; 
-                
+                % To save data in vectoriel and png
+                print('-dsvg',fullfile(indir,subjects{jj},strcat(subjects{jj},'_',conditions{cc+1},'.svg')))
+                print('-dpng',fullfile(indir,subjects{jj},strcat(subjects{jj},'_',conditions{cc+1},'.png')))
+                          
             end
+            
+        %Add a single legend for 6 plots
+        fig = gcf;
+        fig.Position(3) = fig.Position(3) + 250;
+        Lgnd = legend('STD (/DA/)',sprintf('DEV (/%s/)',cond_sylab{cc}),sprintf('DEV-STD (/%s/)',cond_sylab{cc}),'Location','bestoutside');
+        Lgnd.Position(1) = 0.06;
+        Lgnd.Position(2) = 0.8;
+        
+        %Add a single title for 6 plots
+        sgtitle([filename,' balanced number of STDs'],'Interpreter', 'None', 'Fontsize', 16, 'FontWeight', 'bold')
+        
+        % To save data in vectoriel
+        print('-dsvg',fullfile(indir,subjects{jj},strcat(subjects{jj},'_',conditions{cc+1},'.svg')))
+        print('-djpeg',fullfile(indir,subjects{jj},strcat(subjects{jj},'_',conditions{cc+1},'.jpg')))
         
         end
        
         %Export data
         [ALLEEG, EEG_DEV, CURRENTSET] = pop_newset(ALLEEG, EEG_DEV, CURRENTSET, 'setname',strcat(filename,'_','DEV',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','DEV',num2str(cc))),'gui','off');
         [ALLEEG, EEG_STD, CURRENTSET] = pop_newset(ALLEEG, EEG_STD, CURRENTSET, 'setname',strcat(filename,'_','STD',num2str(cc)),'savenew', fullfile(indir,subjects{jj},strcat(filename,'_','STD',num2str(cc))),'gui','off');
-            
+        
+        
     end
 
 end

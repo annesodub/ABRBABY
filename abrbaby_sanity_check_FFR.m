@@ -19,7 +19,7 @@ subjects(ismember(subjects,{'.','..'})) = []; % Removes . and ..
 
 %% Variables to enter manually before running the code
 
-subject_of_interest = 'DVL_029_T10';
+%subject_of_interest = 'DVL_009_T10';
 
 %Set variables for filtering
 hp = 80; %value for high-pass filter (Hz)
@@ -38,9 +38,9 @@ DIFF_color = [0 0 0]; %black
 FFR_color = [0.8902 0 0]; %red
 
 % Loop through subjects
-%for jj=1:length(subjects) 
+for jj=1:length(subjects) 
   
-for jj=find(ismember(subjects, subject_of_interest)) ; 
+%for jj=find(ismember(subjects, subject_of_interest)) ; 
 
 fname= dir(fullfile(indir,subjects{jj},'*.bdf'));
 
@@ -156,7 +156,8 @@ end
 % Create table to store these information
 list_trial_infos = table(trial_index',condition',latency',trial_rej', bloc) ;
 %  Save this table into a csv file (use function writetable)
-writetable(list_trial_infos,fullfile(indir,subject_of_interest,strcat(filename,'_low_',num2str(rej_low),'_high_',num2str(rej_high),'infos_trials_FFR.csv'))) ; 
+writetable(list_trial_infos,fullfile(indir,subjects{jj},strcat(filename,'_low_',num2str(rej_low),'_high_',num2str(rej_high),'infos_trials_FFR.csv'))) ; 
+%writetable(list_trial_infos,fullfile(indir,subject_of_interest,strcat(filename,'_low_',num2str(rej_low),'_high_',num2str(rej_high),'infos_trials_FFR.csv'))) ; 
 
 
 %% Filtering
@@ -164,7 +165,7 @@ writetable(list_trial_infos,fullfile(indir,subject_of_interest,strcat(filename,'
 % Filter data
 EEG  = pop_basicfilter( EEG,  1 , 'Cutoff', [hp lp], 'Design', 'butter', 'Filter', 'bandpass', 'Order',  2 ); % GUI: 11-Apr-2022 12:47:48
 % EEG  = pop_basicfilter( EEG,  elec , 'Boundary', 'boundary', 'Cutoff', [hp lp], 'Design', 'butter', 'Filter', 'bandpass', 'Order',  2, 'RemoveDC', 'on' );
-[ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, 6, 'savenew', filename_filter,'gui','off');
+[ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, 6, 'savenew',fullfile(indir,subjects{jj},filename_filter),'gui','off');
  
 %Extract mean activity (erp) and replace data
 abr = mean(EEG.data(1,:,:),3);
@@ -210,8 +211,8 @@ timepoints = fscanf(fileID,formatSpec);
 % datapoints x subjects
 mat = 1;
 all_subj = zeros(size(timepoints,1),1);
-%for loopnum = 1:length(subjects) %for each subject
-for loopnum=find(ismember(subjects,subject_of_interest)) ; 
+for loopnum = 1:length(subjects) %for each subject
+%for loopnum=find(ismember(subjects,'subject_of_interest')) ; 
     FFR_file = fullfile(indir,subjects{loopnum},strcat(subjects{loopnum},'_abr_shifted_data_HF.txt')) ; 
     fileID = fopen(FFR_file,'r');
     formatSpec = '%f';
@@ -221,17 +222,17 @@ for loopnum=find(ismember(subjects,subject_of_interest)) ;
 end
 
 % Plot individual FFR
-%for jj = 1:size(subjects,1)
-for jj=1 
+for jj = 1:size(subjects,1)
+%for jj=1 
     figure ; 
     plot(timepoints,all_subj(:,jj),'Color', FFR_color, 'Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
     grid on ; 
-    %legend('Individual FFR', subjects(jj), 'Interpreter', 'None');
-    legend(['Individual FFR ', subject_of_interest], 'Interpreter', 'None');
-    %xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subjects(jj)], 'Interpreter', 'None');
-    xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subject_of_interest], 'Interpreter', 'None');
+    legend('Individual FFR', subjects(jj), 'Interpreter', 'None');
+    %legend(['Individual FFR ', subject_of_interest], 'Interpreter', 'None');
+    xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subjects(jj)], 'Interpreter', 'None');
+    %xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subject_of_interest], 'Interpreter', 'None');
 
-end
+%end
 %%
 %========Frequency domain============
 
@@ -266,10 +267,9 @@ HF_Hi = 2750;
 
 %%%  OPEN UP AVG FILE
 %avg = openavg(FILENAME);
-%data = grd_FFR;
 FS = 16384;
-%FFR = grd_FFR;
-FFR = all_subj(:,1);
+%FFR = all_subj(:,1);
+FFR = all_subj(:,jj);
 %******** STEP 1. CREATE VARIABLE "FFR" CORRESPONDING TO FFR PERIOD 
 
 %startPoint = ms2row(avg, start);
@@ -304,7 +304,9 @@ HzScale = HzScale(1:length(fftFFR));
 figure ; 
 plot(HzScale,fftFFR);
 grid on;
-title("Single-Sided Amplitude Spectrum of X(t)");
+title(["Single-Sided Amplitude Spectrum of X(t)", subjects(jj)]);
 xlabel("Frequency (Hz)");
 ylabel("Amplitude (µV)");
+
+end
 
