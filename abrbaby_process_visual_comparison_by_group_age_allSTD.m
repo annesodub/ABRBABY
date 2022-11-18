@@ -12,8 +12,8 @@ cd(tmp) ;
 %Electrodes indices: 1='Fp1'; 2='Fp2';3='F4'; 4='Fz'; 5='F3'; 6='T7'; 7='C3'; 8='Cz'; 9='C4'; 
 %10='T8'; 11='P4'; 12='Pz'; 13='P3'; 14='O1'; 15='Oz'; 16='O2'; 17='Lmon'; 
 %18='Ref'; 19='Rmon'; 20='Left3'; 21='Right'
-elec_to_disp_labels = {'F3','Fz','F4';'C3','Cz','C4'};
-elec_indices = [5,4,3;7,8,9];
+% elec_to_disp_labels = {'F3','Fz','F4';'C3','Cz','C4'};
+% elec_indices = [5,4,3;7,8,9];
 
 % Modify preferences in order to be able to load multiple datasets 
 pop_editoptions( 'option_storedisk', 1);
