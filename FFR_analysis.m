@@ -187,7 +187,7 @@ FFR = grd_FFR;
 
 %FFR = data(startPoint:endPoint);
 numPoints = length(FFR);
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 %**** STEP 2. FFT OF FFR
 %******** STEP 2a. CREATE and APPLY HANNING RAMP 2 msec rise, 2 msec fall
 rampMS = 4/1000; % length of ramp (on and off) in seconds
@@ -211,57 +211,83 @@ HzScale = [0:1:round(FS/2)]'; % frequency 'axis'
 HzScale = HzScale(1:length(fftFFR));
 
 %% Plot FFT
-figure ; 
+figure ;
+
+subplot(2,2,1);
 plot(HzScale,fftFFR);
 grid on;
 title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (�V)");
+ylabel("Amplitude (µV)");
 
-%% This section does not work for now
-% clear variables no longer needed
-clear FFRramp rampMS hanPoints hanHalfPoints numberOfOnes FFRhan
-
-%**** STEP 3. compute mean magnitudes over F0, F-1 and HF ranges
-% i. F0: F0_Lo-F0_Hi.
-% find freqs nearest F0_Lo and F0_Hi.
-startF = find(F0_Lo-1/2 < HzScale & HzScale < F0_Lo+1/2); % 1 is stepsize
-stopF = find(F0_Hi-1/2 < HzScale & HzScale < F0_Hi+1/2);
-% compute mean
-Freq1 = mean(fftFFR(startF:stopF,1));
-% plot
-figure ; 
-plot(HzScale(startF:stopF),Freq1);
+subplot(2,2,2); 
+plot(HzScale,fftFFR);
+xlim([90 110]);
 grid on;
-title("Freq1");
+title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (�V)");
+ylabel("Amplitude (µV)");
 
-% ii. F1: F1_Lo-F1_Hi
-% find freqs nearest F1_Lo and F1_Hi.
-startF = find(F1_Lo-1/2 < HzScale & HzScale < F1_Lo+1/2); % 1 is stepsize
-stopF = find(F1_Hi-1/2 < HzScale & HzScale < F1_Hi+1/2);
-% compute mean
-Freq2 = mean(fftFFR(startF:stopF,1));
-% plot
-figure ; 
-plot(HzScale,Freq2);
+subplot(2,2,3); 
+plot(HzScale,fftFFR);
+xlim([300 500]);
 grid on;
-title("Freq2");
+title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (�V)");
+ylabel("Amplitude (µV)");
 
-% iii. HF: HF_Lo-HF_Hi
-% find freqs nearest HF_Lo and HF_Hi.
-startF = find(HF_Lo-1/2 < HzScale & HzScale < HF_Lo+1/2); % 1 is stepsize
-stopF = find(HF_Hi-1/2 < HzScale & HzScale < HF_Hi+1/2);
-% compute mean
-Freq3 = mean(fftFFR(startF:stopF,1));
-% plot
-figure ; 
-plot(HzScale,Freq3);
+subplot(2,2,4); 
+plot(HzScale,fftFFR);
+xlim([1100 1300]);
 grid on;
-title("Freq3");
+title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
-ylabel("Amplitude (�V)");
+ylabel("Amplitude (µV)");
+
+% %% This section does not work for now
+% % clear variables no longer needed
+% clear FFRramp rampMS hanPoints hanHalfPoints numberOfOnes FFRhan
+% 
+% %**** STEP 3. compute mean magnitudes over F0, F-1 and HF ranges
+% % i. F0: F0_Lo-F0_Hi.
+% % find freqs nearest F0_Lo and F0_Hi.
+% startF = find(F0_Lo-1/2 < HzScale & HzScale < F0_Lo+1/2); % 1 is stepsize
+% stopF = find(F0_Hi-1/2 < HzScale & HzScale < F0_Hi+1/2);
+% % compute mean
+% Freq1 = mean(fftFFR(startF:stopF,1));
+% % plot
+% figure ; 
+% plot(HzScale(startF:stopF),Freq1);
+% grid on;
+% title("Freq1");
+% xlabel("Frequency (Hz)");
+% ylabel("Amplitude (�V)");
+% 
+% % ii. F1: F1_Lo-F1_Hi
+% % find freqs nearest F1_Lo and F1_Hi.
+% startF = find(F1_Lo-1/2 < HzScale & HzScale < F1_Lo+1/2); % 1 is stepsize
+% stopF = find(F1_Hi-1/2 < HzScale & HzScale < F1_Hi+1/2);
+% % compute mean
+% Freq2 = mean(fftFFR(startF:stopF,1));
+% % plot
+% figure ; 
+% plot(HzScale,Freq2);
+% grid on;
+% title("Freq2");
+% xlabel("Frequency (Hz)");
+% ylabel("Amplitude (�V)");
+% 
+% % iii. HF: HF_Lo-HF_Hi
+% % find freqs nearest HF_Lo and HF_Hi.
+% startF = find(HF_Lo-1/2 < HzScale & HzScale < HF_Lo+1/2); % 1 is stepsize
+% stopF = find(HF_Hi-1/2 < HzScale & HzScale < HF_Hi+1/2);
+% % compute mean
+% Freq3 = mean(fftFFR(startF:stopF,1));
+% % plot
+% figure ; 
+% plot(HzScale,Freq3);
+% grid on;
+% title("Freq3");
+% xlabel("Frequency (Hz)");
+% ylabel("Amplitude (�V)");
 

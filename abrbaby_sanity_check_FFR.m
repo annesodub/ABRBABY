@@ -1,4 +1,4 @@
-function [] = abrbaby_sanity_check_FFR(eeglab_path, biosig_installer_path,indir) 
+function [] = abrbaby_sanity_check_FFR(eeglab_path, biosig_installer_path,indir,plots_dir) 
 % FFR sanity check script - 
 % Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
@@ -234,6 +234,10 @@ for jj = 1:size(subjects,1)
     %xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subject_of_interest], 'Interpreter', 'None');
 
 %end
+
+print('-dsvg',fullfile(indir,subjects{jj},strcat(subjects{jj},'_FFR_temporal.svg')));
+print('-dpng',fullfile(plots_dir,strcat(subjects{jj},'_FFR_temporal.png')));
+
 %%
 %========Frequency domain============
 
@@ -301,14 +305,6 @@ fftFFR = fftFFR.*(2./numPoints); % scale to peak µV
 HzScale = [0:1:round(FS/2)]'; % frequency 'axis'
 HzScale = HzScale(1:length(fftFFR));
 
-% %% Plot FFT
-% figure ; 
-% plot(HzScale,fftFFR);
-% grid on;
-% title(["Single-Sided Amplitude Spectrum of X(t)", subjects(jj)]);
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude (µV)");
-
 %% Plot FFT in specific frequency windows
 figure ;
 
@@ -342,6 +338,9 @@ grid on;
 title(["Single-Sided Amplitude Spectrum of X(t)", subjects(jj)]);
 xlabel("Frequency (Hz)");
 ylabel("Amplitude (µV)");
+
+print('-dsvg',fullfile(indir,subjects{jj},strcat(subjects{jj},'_FFR_frequential.svg')));
+print('-dpng',fullfile(plots_dir,strcat(subjects{jj},'_FFR_frequential.png')));
 
 end
 
