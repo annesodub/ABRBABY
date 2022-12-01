@@ -311,7 +311,9 @@ DIFF_color = [0 0 0]; %black
         
     end
 
-    end    
+    end   
+end
+
     
 %--------------------------------------------------------------
 % FUNCTION that select from EEG_STD ntrial with no repetition with exisitng
