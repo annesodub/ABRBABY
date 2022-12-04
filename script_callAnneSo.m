@@ -18,14 +18,26 @@ baseline = [-99, 0] ; win_of_interest = [-0.1, 0.5] ;
 conditions = {'STD','DEV1','DEV2'} ; 
 eeg_elec = 1:16 ; 
 chan_dir = fullfile(eeglab_path,'plugins/dipfit/standard_BEM/elec/standard_1005.elc') ; 
-[preproc_filenames] = reref_filter_epoch(ALLEEG, indir, hp,lp, mastos, trig, eeg_elec, baseline, win_of_interest, conditions, chan_dir);
+overwrite = 0 ; % this option allow to overwrite (=11) or not (=0) 
+[preproc_filenames] = reref_filter_epoch(ALLEEG, indir, hp,lp, mastos, trig, eeg_elec, baseline, win_of_interest, conditions, chan_dir, overwrite);
 
 %% ------------------- Preprocess : generate a report on rejected trials
 rej_low = -150; %150 infants; 120 adults
 rej_high = 150; %150 infants; 120 adults
 
-% [trial_rejected_filenames] = reject_trials_write_report(preproc_filenames, rej_low, rej_high, 'unbalanced') ; 
+% Write csv file directly into the subject dir
 reject_trials_write_report(preproc_filenames, eeg_elec, win_of_interest, rej_low, rej_high) ; 
+
+%% ------------------- Preprocess : Select trials to process
+select_and_save_trials_per_condition(ALLEEG, preproc_filenames, eeg_elec, win_of_interest, rej_low, rej_high, 'balanced') ; 
+select_and_save_trials_per_condition(ALLEEG, preproc_filenames, eeg_elec, win_of_interest, rej_low, rej_high, 'unbalanced') ; 
+
+%% ------------------- Display : 
+elec_subset = {'F3','Fz','F4';'C3','Cz','C4'};
+plot_dir = '/Users/annesophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data/png_folder' ; 
+display_timeseries_by_condition(preproc_filenames, elec_subset, 'balanced',plot_dir) ; 
+% 
+% display_timeseries_by_condition(preproc_filenames, elec_subset, 'unbalanced') ; 
 
 
 plots_dir = '/Users/annesophiedubarry/Documents/0_projects/in_progress/ABRBABY_cfrancois/data/png_folder';

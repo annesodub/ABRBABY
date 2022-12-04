@@ -54,8 +54,8 @@ for subject=1:length(preproc_filenames)
                 plot(EEG_STD.times,grd_DIFF,'Color',DIFF_color,'Linewidth',1.5);  hold on; set(gca,'YDir','reverse') ;
                 
                 % Plot transparent halo (+-mad)
-                plotHaloPatchMAD(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), STD_color*255) ;
-                plotHaloPatchMAD(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), DEV_colors{cond}*255);
+                plotHaloPatchSEM(hAxes, EEG_STD.times, squeeze(EEG_STD.data(idx_elec,:,:)), STD_color*255) ;
+                plotHaloPatchSEM(hAxes, EEG_DEV.times, squeeze(EEG_DEV.data(idx_elec,:,:)), DEV_colors{cond}*255);
                 
                 % Adjust graphics
 

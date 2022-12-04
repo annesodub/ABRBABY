@@ -1,4 +1,4 @@
-function [out_filenames] = reref_filter_epoch(ALLEEG, indir, hp, lp, mastos, trig, eeg_elec, baseline, win_of_interest, conditions, chan_dir)
+function [out_filenames] = reref_filter_epoch(ALLEEG, indir, hp, lp, mastos, trig, eeg_elec, baseline, win_of_interest, conditions, chan_dir, overwrite)
 % ERPs sanity check script - 
 % Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
@@ -10,14 +10,23 @@ function [out_filenames] = reref_filter_epoch(ALLEEG, indir, hp, lp, mastos, tri
     
     %Loop through subjects
     for jj=1:length(subjects) 
-            
+           
+        
         fprintf(strcat(subjects{jj}, '...\n'));
          
         %% IMPORT
         % Get BDF file
         %[ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
         fname= dir(fullfile(indir,subjects{jj},'*.bdf'));
-     
+        [~,filename,~] = fileparts(fname.name);    
+
+        % Creates resulting filename
+        out_filenames{jj} = fullfile(indir,subjects{jj}, strcat(filename,'_reref_filtered_epoched.set')) ; 
+ 
+        % Skip if subject rerefe filtered_epochs already exist and we don't
+        % want to overwrite
+        if exist(out_filenames{jj},'file') && overwrite == 0; continue; end
+
         % Select bdf file in the folder
         EEG = pop_biosig(fullfile(indir, subjects{jj}, fname.name));
     
@@ -25,7 +34,6 @@ function [out_filenames] = reref_filter_epoch(ALLEEG, indir, hp, lp, mastos, tri
         ref_elec = find(ismember({EEG.chanlocs.labels},mastos)); 
         
         % Save a first dataset in EEGLAB 
-        [~,filename,~] = fileparts(fname.name);    
         [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, 1,'setname',filename,'gui','off');
      
         %% RE-REF (excluding trig channel)
@@ -67,8 +75,7 @@ function [out_filenames] = reref_filter_epoch(ALLEEG, indir, hp, lp, mastos, tri
         EEG=pop_chanedit(EEG, 'lookup',chan_dir);
         
         %% SAVE DATASET 
-        [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_reref_filtered_epoched'),'savenew', fullfile(indir,subjects{jj}, strcat(filename,'_reref_filtered_epoched')),'gui','off');
-        out_filenames{jj} = fullfile(indir,subjects{jj}, strcat(filename,'_reref_filtered_epoched')) ; 
+        [ALLEEG, EEG, CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET, 'setname', strcat(filename,'_reref_filtered_epoched'),'savenew', out_filenames{jj},'gui','off');
         
     end
 end
