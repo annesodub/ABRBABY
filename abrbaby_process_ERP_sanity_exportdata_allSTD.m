@@ -3,13 +3,13 @@ function [] = abrbaby_process_ERP_sanity_exportdata_allSTD(eeglab_path, biosig_i
 % Estelle Herve, A.-Sophie Dubarry - 2022 - %80PRIME Project
 
 %----------------------------------------------------------------------------------------------------
-% %WHEN NOT IN 'FUNCTION' MODE:
+% % %WHEN NOT IN 'FUNCTION' MODE:
 % eeglab_path = '\\Filer\home\Invites\hervé\Mes documents\MATLAB\eeglab2021.1';
 % biosig_installer_path = '\\Filer\home\Invites\hervé\Mes documents\MATLAB\eeglab2021.1\plugins\Biosig3.7.9\biosig_installer.m';
 % chan_dir ='\\Filer\\home\\Invites\\hervé\\Mes documents\\MATLAB\\eeglab2021.1\\plugins\\dipfit\\standard_BEM\\elec\\standard_1005.elc';
 % plots_dir = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\png_plots_eeg_data';
-% indir = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data';
-% %indir = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_DATA_NEW';
+% %indir = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_data';
+% indir = '\\Filer\home\Invites\hervé\Mes documents\These\EEG\Data\DEVLANG_DATA_NEW';
 % STD_number = 1;
 
 %----------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ DEV_colors = {DEV1_color, DEV2_color};
 DIFF_color = [0 0 0]; %black
 
 % FOR SANITY CHECK
-%for jj=find(ismember(subjects,'DVL_010_T24'))
+%for jj=find(ismember(subjects,'DVL_017_T24'))
 
     %Loop through subjects
     for jj=1:length(subjects) 
@@ -311,8 +311,9 @@ DIFF_color = [0 0 0]; %black
         
     end
 
-    end    
-    
+end    
+
+end
 %--------------------------------------------------------------
 % FUNCTION that select from EEG_STD ntrial with no repetition with exisitng
 % STD 

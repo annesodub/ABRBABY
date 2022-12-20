@@ -35,53 +35,36 @@ for loopnum = 1:length(subjects) %for each subject
     mat = mat+1;
 end
 
-% % Plot individual FFRs
-% for jj = 1:size(subjects,1)
-%     figure ; 
-%     plot(timepoints,all_subj(:,jj),'b','Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
-%     grid on ; 
-%     legend('Individual FFR', subjects(jj), 'Interpreter', 'None');
-%     xlabel('Times (ms)'); ylabel('uV'); title ([' FFR ', subjects(jj)], 'Interpreter', 'None');
+% % Exclude noisy participants from max and min values
+% excluded_subj = {};
+% ex = 1;
+% for noise = 1:size(all_subj,2)
+%     if max(all_subj(:,noise)) > 0.5 || min(all_subj(:,noise)) < -0.5
+%         excluded_subj(ex) = subjects(noise,1);   
+%         disp([subjects(noise,1), 'excluded']);
+%         ex = ex +1;
+%     end
+%    
 % end
-
-% % Exclude noisy participants from observation
-% a = ismember(subjects,noise_list)==1
-% for excl = 1:size(subjects,1)
-%     if a(excl)==1
-%         subjects(excl) = [];
-%         all_subj(:,excl) = []; 
+% 
+% % Delete excluded subjects
+% exclud = ismember(subjects,excluded_subj);
+% new_all_subj = zeros(size(timepoints,1),1);
+% new_subjects = {};
+% n = 1;
+% for tt = 1:size(exclud,1)
+%     if exclud(tt)==0
+%         new_all_subj(:,n) = all_subj(:,tt);
+%         new_subjects(n) = subjects(tt);
+%         n = n+1;
 %     end
 % end
 
-% Exclude noisy participants from max and min values
-excluded_subj = {};
-ex = 1;
-for noise = 1:size(all_subj,2)
-    if max(all_subj(:,noise)) > 0.5 || min(all_subj(:,noise)) < -0.5
-        excluded_subj(ex) = subjects(noise,1);   
-        disp([subjects(noise,1), 'excluded']);
-        ex = ex +1;
-    end
-   
-end
-
-% Delete excluded subjects
-exclud = ismember(subjects,excluded_subj);
-new_all_subj = zeros(size(timepoints,1),1);
-new_subjects = {};
-n = 1;
-for tt = 1:size(exclud,1)
-    if exclud(tt)==0
-        new_all_subj(:,n) = all_subj(:,tt);
-        new_subjects(n) = subjects(tt);
-        n = n+1;
-    end
-end
-
   
-%%
+%% Time domain : FFR visualization
 % Compute grand average and plot
-grd_FFR = mean(new_all_subj,2);
+grd_FFR = mean(all_subj,2);
+%grd_FFR = mean(new_all_subj,2);
 figure ; 
 plot(timepoints,grd_FFR,'Color',FFR_color,'Linewidth',0.5); hold on ;set(gca,'YDir','reverse') ;
 grid on ; 
@@ -93,8 +76,10 @@ grpA.suffix = {'_T3','_T6','_T8','_T10'};
 grpB.suffix = {'_T18','_T24'};
 
 % Compute grand average by group
-grpA.subj = new_subjects(contains(new_subjects,grpA.suffix));
-grpB.subj = new_subjects(contains(new_subjects,grpB.suffix));
+%grpA.subj = new_subjects(contains(new_subjects,grpA.suffix));
+%sgrpB.subj = new_subjects(contains(new_subjects,grpB.suffix));
+grpA.subj = subjects(contains(subjects,grpA.suffix));
+grpB.subj = subjects(contains(subjects,grpB.suffix));
 
 grpA.data = zeros(size(timepoints,1),1);
 grpB.data = zeros(size(timepoints,1),1);
@@ -103,9 +88,11 @@ groups = {grpA.subj, grpB.subj};
 data_groups = {grpA.data, grpB.data};
 for k = 1:length(groups)
     grp_subj = zeros(size(timepoints,1),1);
-    indices = find(ismember(new_subjects,groups{k})==1);
+    %indices = find(ismember(new_subjects,groups{k})==1);
+    indices = find(ismember(subjects,groups{k})==1);
     for l = 1:length(indices)
-        grp_subj(:,l) = new_all_subj(:,indices(l));
+        %grp_subj(:,l) = new_all_subj(:,indices(l));
+        grp_subj(:,l) = all_subj(:,indices(l));
     end
     data_groups{k} = grp_subj;
 end
@@ -123,30 +110,183 @@ grid on ;
 legend('Grand average FFR 6-10 mo', 'Grand average FFR 18-24 mo');
 xlabel('Times (ms)'); ylabel('uV'); title ('Grand average FFR group comparison');
 
-%%
-% Frequential
-%TODO
+
+%% Root mean square
+
+% Adapted from bt_rms.m from bt_gui toolbox (Kraus & Skoe, 2010)
+% Note: std(X,1) is a shortcut RMS calc. It is equivalent to RMS
+% on a baselined (demeaned to 0) waveform.  This is what we want here.
+startPeriod = 0.0610; % (in ms) to obtain 1 in samples
+endPeriod = 40; % (in ms)
+
+% response period
+RMS_grpA = std(FFR_avg_grpA,1); 
+RMS_grpB = std(FFR_avg_grpB,1); 
+
+% Prestim period
+Segment_A = FFR_avg_grpA(round(startPeriod*16384/1000):round(endPeriod*16384/1000));
+Segment_B = FFR_avg_grpB(round(startPeriod*16384/1000):round(endPeriod*16384/1000));
+RMSprestimA = std(Segment_A,1);
+RMSprestimB = std(Segment_B,1);
+
+% signal-to-noise
+SNR_grpA = RMS_grpA./RMSprestimA;
+SNR_grpB = RMS_grpB./RMSprestimB;
+
+% display results
+disp(["Group A: RMS total = ",RMS_grpA, "RMS prestim = ", RMSprestimA, "SNR = ", SNR_grpA]);
+disp(["Group B: RMS total = ",RMS_grpB, "RMS prestim = ", RMSprestimB, "SNR = ", SNR_grpB]);
 
 
-% Fs = 16384;            % Sampling frequency                    
-% T = 1/Fs;              % Sampling period       
-% L = 250;               % Length of signal
-% t = (0:L-1)*T;         % Time vector
-% 
-% Y = fft(grd_FFR);
-% 
-% P2 = abs(Y/L);
-% P1 = P2(1:L/2+1);
-% P1(2:end-1) = 2*P1(2:end-1);
-% 
-% f = Fs*(0:(L/2))/L;
-% plot(f,P1) 
-% title("Single-Sided Amplitude Spectrum of X(t)")
-% xlabel("f (Hz)")
-% ylabel("|P1(f)|")
+%% Stimulus-to-response correlation
+
+%function [time autocorr LAG FFT freqAxis preFFT blocks]= pitchtrack(avgname, block, step, startAnalysis,channel,exportData)
+
+block = 1;
+step = 1;
+startAnalysis = 1;
+%channel = 1;
+%exportData = 1;
+file.xmin =1; 
+file.xmax=240;
+file.pnts=2932;
+
+% if block<40
+%     display('Block Size is too small. Using default: 40 ms');
+%     block = 40;
+% end
+
+% %Open average file 
+% [file]= openavg(avgname);
+%Define time axis 
+timeaxis = linspace(file.xmin, file.xmax, file.pnts)';
+
+ % extract signal
+ %SIGNAL = file.signal(:,channel);
+ SIGNAL = FFR_avg_grpB;
+ % get sampling rate
+ fs = 16384;
+
+ 
+ % ---------------------------PRESTIM, ---------------------------
+ % extract portion of prestimulus time, and detrend. The size of the prestim portion is dependent on the block size.
+ % To do SNR calculations block and prestim must be same the same number of ms.
+ % If the block size is 40ms, then only 40ms of the prestim will be
+ % extracted. 
+ 
+ %PRESTIM = SIGNAL(1: ms2row(file, block));   %start with the very first point.
+ PRESTIM = Segment_B;
+ % ramp
+ r = hann(size(PRESTIM, 1));  % the entire prestim is ramped.
+ % ramp and detrend
+ PRESTIM = detrend(PRESTIM.*hann(size(PRESTIM,1)), 'constant');
+ % FFT (zero-padded to sampling rate);
+ preFFT = abs(fft(PRESTIM, fs));
+ %scale preFFT
+ preFFT= preFFT*(2./length(PRESTIM));
+ preFFT=preFFT(1:1001,1);  %truncate above 1000 Hz
+ 
+   
+%  ------------------ FFTS of RESPONSE CHUNKS-----------------------
+j = startAnalysis; % each time through loop j increases by step size;
+
+    chunks = 5000;    % an arbitrary maximum number of blocks that the program will create. 
+                        
+    for k = 1:chunks;   %the program knows to stop once file.xmax is exceeded 
+
+        % variables created: 
+        ramptime = (block/1000);   % ramp the entire chunk
+        start = j;
+        stop = j+block;
+
+        if stop>(file.xmax)  % if stop exceeds the maximum ms time then abort and break out from loop
+            k=k-1;
+            j=j-step;
+            break;
+        else
+            signal = detrend(SIGNAL(ms2row(file, start):ms2row(file, stop)), 'constant');   % de-mean to zero           
+        end
+        
+        midpoint(k) = mean(ms2row(file, start):ms2row(file,stop));  %calculates the time corresponding to the midpoint of the chunk
+
+        % generate ramp
+        ramp = hann(size(signal,1));
+        % ramp and de-mean
+        signal = detrend(signal.*ramp, 'constant');
 
 
-%% Adaptation of Skoe function (bt_fftsc)
+        % autocorrelation (see Boersma 1993)
+        [c lag]=xcorr(signal, 'coeff');
+       
+        
+        [cwin lagwin]=xcorr(ramp, 'coeff');
+        LAG = linspace(-block, block, length(c));
+    
+        autoc=c./cwin;
+        autoc(autoc>1)=1;  %this handles the very rare case that the remainder of the previous step is >1.
+        % only plot the first 15 ms; % lowest frequency is ~66 Hz.
+        
+        
+            
+            startlag = find(LAG==0);  
+            endlag = find(LAG==closestrc(LAG, 15));
+
+        
+        % truncate lag and r value matrices to only include values up to first 15 ms.
+        autocorr(:,k)=autoc(startlag:endlag)';
+        LAG = LAG(startlag:endlag)';
+     
+        ostartlag = startlag;
+        
+        ostoplag = endlag;
+         
+         %%% Now do FFTs;
+        % fft, pads to sampling rate
+        fftsignal{k} = abs(fft(signal, fs));
+        % only go up to 1000 Hz;
+        FFT{k} = fftsignal{k}(1:1001,1);
+        FFT{k}= FFT{k}*(2./length(signal));
+        freqAxis = linspace(0, 1000, 1001);
+        
+        j = j+step;  % loop through next time chunk
+        
+       
+       
+    end
+    time = timeaxis(round(midpoint));
+    
+    blocks = k;
+    
+    FFT = cell2mat(FFT);
+    
+    
+%     if exportData == 1
+%         [fpath fname ext]=fileparts(avgname);
+%         FFTfile = [fpath, '\', fname, '-FFTmatrix.xls'];
+%         ACfile = [fpath, '\', fname, '-ACmatrix.xls'];
+%         
+%         xlswrite(FFT, fname, {'FFT matrix'}, FFTfile, 'Sheet1');
+%         xlswrite(freqAxis', fname, {'Frequency Axis'}, FFTfile, 'Sheet2');
+%         xlswrite(time, fname, {'Time Axis'}, FFTfile,     'Sheet3');
+%         
+%         xlswrite(autocorr, fname, {'autocorrelation matrix'}, ACfile, 'Sheet1');
+%         xlswrite( LAG, fname, {'Lag Axis'} , ACfile, 'Sheet2');
+%         xlswrite(time, fname, {'Time Axis'} , ACfile, 'Sheet3');
+%        
+%      
+%     end
+%     
+%% Response-to-response correlation    
+
+%compare grpA and grpB
+
+%% Response consistency 
+
+%compare 2 subaverages of the same FFR (use all subjects from eacg group)
+
+%% Frequency domain
+
+% Adaptation of Skoe function (bt_fftsc)
  %function [Freq1 Freq2 Freq3 fftFFR HzScale]=bt_fftsc(FILENAME,start,stop,F0_Lo,F0_Hi,F1_Lo,F1_Hi,HF_Lo,HF_Hi, chan)
 % bt_fftsc computes frequency-domain amplitudes of three user-defined 
 % frequency bins of Brainstem response.  Results are scaled to peak �V.
@@ -210,7 +350,7 @@ fftFFR = fftFFR.*(2./numPoints); % scale to peak �V
 HzScale = [0:1:round(FS/2)]'; % frequency 'axis'
 HzScale = HzScale(1:length(fftFFR));
 
-%% Plot FFT
+% Plot FFT
 figure ;
 
 subplot(2,2,1);
@@ -244,50 +384,5 @@ title("Single-Sided Amplitude Spectrum of X(t)");
 xlabel("Frequency (Hz)");
 ylabel("Amplitude (µV)");
 
-% %% This section does not work for now
-% % clear variables no longer needed
-% clear FFRramp rampMS hanPoints hanHalfPoints numberOfOnes FFRhan
-% 
-% %**** STEP 3. compute mean magnitudes over F0, F-1 and HF ranges
-% % i. F0: F0_Lo-F0_Hi.
-% % find freqs nearest F0_Lo and F0_Hi.
-% startF = find(F0_Lo-1/2 < HzScale & HzScale < F0_Lo+1/2); % 1 is stepsize
-% stopF = find(F0_Hi-1/2 < HzScale & HzScale < F0_Hi+1/2);
-% % compute mean
-% Freq1 = mean(fftFFR(startF:stopF,1));
-% % plot
-% figure ; 
-% plot(HzScale(startF:stopF),Freq1);
-% grid on;
-% title("Freq1");
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude (�V)");
-% 
-% % ii. F1: F1_Lo-F1_Hi
-% % find freqs nearest F1_Lo and F1_Hi.
-% startF = find(F1_Lo-1/2 < HzScale & HzScale < F1_Lo+1/2); % 1 is stepsize
-% stopF = find(F1_Hi-1/2 < HzScale & HzScale < F1_Hi+1/2);
-% % compute mean
-% Freq2 = mean(fftFFR(startF:stopF,1));
-% % plot
-% figure ; 
-% plot(HzScale,Freq2);
-% grid on;
-% title("Freq2");
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude (�V)");
-% 
-% % iii. HF: HF_Lo-HF_Hi
-% % find freqs nearest HF_Lo and HF_Hi.
-% startF = find(HF_Lo-1/2 < HzScale & HzScale < HF_Lo+1/2); % 1 is stepsize
-% stopF = find(HF_Hi-1/2 < HzScale & HzScale < HF_Hi+1/2);
-% % compute mean
-% Freq3 = mean(fftFFR(startF:stopF,1));
-% % plot
-% figure ; 
-% plot(HzScale,Freq3);
-% grid on;
-% title("Freq3");
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude (�V)");
+%% 
 
