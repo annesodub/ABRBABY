@@ -3,8 +3,9 @@ function [DEV1_subj, DEV2_subj,STD1_subj, STD2_subj, timepoints, labels] = extra
 % Loop through all of the subjects in the study to create the dataset
 for loopnum = 1:length(subjects) %for each subject
 
-    %dimensions datasets (.set) =  subjects x channels x timepoints
-
+    %dimensions XXX.data input (for 1 subject) = channels x timepoints x trials
+    %dimensions datasets (.set) output (average) =  subjects x channels x timepoints
+    
     STD1File = fullfile(INDIR,subjects{loopnum},strcat(subjects{loopnum},STD_setfile{1})) ; 
     EEG_std1 = pop_loadset(STD1File) ; 
     STD1_subj(loopnum,:,:)  = mean(EEG_std1.data,3) ;
